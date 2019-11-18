@@ -1,0 +1,18 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply from: 'basic-script.gradle'
+
+setDefault('fileEncoding', 'UTF-8')
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile) {
+  options.encoding = fileEncoding
+}
+
+dependencies {
+}
+

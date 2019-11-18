@@ -1,0 +1,5 @@
+ext.setDefault = { varName, defaultValue ->
+  if (!project.hasProperty(varName)) {
+        ext[varName] = defaultValue
+  }
+}
