@@ -1,18 +1,62 @@
 apply plugin: 'java'
 apply plugin: 'application'
-apply from: 'basic-script.gradle'
+apply plugin: 'jacoco'
+apply from: 'https://raw.githubusercontent.com/easyweb4j/gradle-gallery/master/basic-script.gradle'
 
 setDefault('fileEncoding', 'UTF-8')
+setDefault('sourceCompatibility', JavaVersion.VERSION_1_8)
+setDefault('targetCompatibility', JavaVersion.VERSION_1_8)
+setDefault('compilerArgs', ['-Xlint:unchecked'])
+setDefault('tz', "UTC")
+setDefault('annonGenDir', file("$projectDir/src/generated/java"))
+
+// deps version
+setDefault('guavaVersion', "28.1-jre")
+setDefault('commonsLangVersion', "3.9")
+setDefault('commonsCollectionVersion', "4.4")
+setDefault('commonsCodecVersion', "1.13")
+setDefault('slf4jVersion', '1.7.29')
+setDefault('autoValueVersion', '1.7')
+
+// end deps version
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = sourceCompatibility
+  targetCompatibility = targetCompatibility
+
+  sourceSets {
+    main {
+      java {
+        srcDirs += annonGenDir
+      }
+    }
+  }
+
 }
 
 tasks.withType(JavaCompile) {
   options.encoding = fileEncoding
+  options.compilerArgs = compilerArgs
+  options.annotationProcessorGeneratedSourcesDirectory = annonGenDir
 }
 
+tasks.withType(Test) {
+   systemProperty "user.timezone", tz
+}
+
+tasks.withType(JavaExec) {
+   jvmArgs "-Duser.timezone=$tz"
+}
+
+
 dependencies {
+  implementation group: 'com.google.guava', name: 'guava', version: guavaVersion
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: commonsLangVersion
+  implementation group: 'org.apache.commons', name: 'commons-collections4', version: commonsCollectionVersion
+  implementation group: 'commons-codec', name: 'commons-codec', version: commonsCodecVersion
+  implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+
+  implementation "com.google.auto.value:auto-value-annotations:${autoValueVersion}"
+  annotationProcessor "com.google.auto.value:auto-value:${autoValueVersion}"
 }
 
