@@ -1,0 +1,138 @@
+import groovy.xml.*
+
+apply plugin: 'java'
+apply from: 'https://raw.githubusercontent.com/easyweb4j/gradle-gallery/master/basic-script.gradle'
+
+Map<String, String> mysqlConnectionDefProps = [
+  'driverClass': 'com.mysql.cj.jdbc.Driver',
+  'jdbcUrl': \
+    'jdbc:mysql://localhost:3306/devel?useUnicode=true&useSSL=false&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC',
+  'user': 'devel',
+  'password': '123456',
+]
+
+setDefault('mybatisGeneratorVersion', '1.3.7')
+setDefault('mysqlConnectorVersion', '8.0.18')
+setDefault('mysqlConnectionProps', mysqlConnectionDefProps)
+setDefault('basePackage', 'com.example.generated.mybatis')
+setDefault('overwrite', true)
+setDefault('mybatisGenertorConfigFilePath', "${projectDir.path}/src/main/resources/mybatis-generator.xml")
+setDefault('hikariCPVersion', '3.4.1')
+setDefault('fileEncoding', 'UTF-8')
+setDefault('mybatisVersion', '3.5.3')
+
+configurations {
+  mybatisGeneratorConfiguration
+}
+
+dependencies {
+  implementation group: 'mysql', name: 'mysql-connector-java', version: mysqlConnectorVersion
+  implementation group: 'com.zaxxer', name: 'HikariCP', version: hikariCPVersion
+  implementation group: 'org.mybatis', name: 'mybatis', version: mybatisVersion
+
+  mybatisGeneratorConfiguration group: 'org.mybatis.generator', name: 'mybatis-generator-core', version: mybatisGeneratorVersion
+  mybatisGeneratorConfiguration group: 'mysql', name: 'mysql-connector-java', version: mysqlConnectorVersion
+}
+
+task mybatisGenerateSrc {
+    group = "mybatis"
+    description = "mybatis generator generates src"
+    doLast {
+        ant.properties['targetProject'] = projectDir.path
+        ant.properties['src_main_java'] = sourceSets.main.java.srcDirs[0].path
+        ant.properties['src_main_resources'] = sourceSets.main.resources.srcDirs[0].path
+        ant.properties['modelPackage'] = basePackage + ".model"
+        ant.properties['mapperPackage'] = basePackage + ".mapper"
+        ant.properties['sqlMapperPackage'] = basePackage.replaceAll('\\.', '/') + "/mapper"
+
+        mysqlConnectionProps.each{ k, v -> ant.properties[k] = v }
+
+        ant.taskdef(
+                name: 'mybatisGenerateSrc',
+                classname: 'org.mybatis.generator.ant.GeneratorAntTask',
+                classpath: configurations.mybatisGeneratorConfiguration.asPath
+        )
+        ant.mybatisGenerateSrc(overwrite: true,
+                configfile: mybatisGenertorConfigFilePath , verbose: true) {
+            propertyset {
+                propertyref(name: 'targetProject')
+                propertyref(name: 'user')
+                propertyref(name: 'driverClass')
+                propertyref(name: 'jdbcUrl')
+                propertyref(name: 'password')
+                propertyref(name: 'src_main_java')
+                propertyref(name: 'src_main_resources')
+                propertyref(name: 'modelPackage')
+                propertyref(name: 'mapperPackage')
+                propertyref(name: 'sqlMapperPackage')
+
+            }
+        }
+    }
+
+}
+
+task generateMybatisConfigFile {
+  doLast {
+    file(mybatisGenertorConfigFilePath).withWriter fileEncoding, {
+      writer ->
+      	def xml = new MarkupBuilder(new IndentPrinter(writer))
+				xml.doubleQuotes = true
+				xml.mkp.xmlDeclaration(version: '1.0', encoding: fileEncoding)
+				xml.mkp.yieldUnescaped '<!DOCTYPE generatorConfiguration' +
+					' PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"' +
+					' "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">\n'
+        xml.generatorConfiguration() {
+          context(id: 'MySQL', targetRuntime: 'MyBatis3', defaultModelType: 'flat') {
+            property(name: 'javaFileEncoding', value: fileEncoding)
+            property(name: 'autoDelimitKeywords', value: true)
+            property(name: 'beginningDelimiter', value: '`')
+            property(name: 'endingDelimiter', value: '`')
+            commentGenerator() {
+              property(name: 'suppressAllComments', value: true)
+            }
+
+            jdbcConnection(
+              driverClass: '${driverClass}',
+              connectionURL: '${jdbcUrl}',
+              userId: '${user}',
+              password: '${password}'
+              ) {
+              property(name: 'nullCatalogMeansCurrent', value: true)
+            }
+
+            javaTypeResolver() {
+              property(name: 'forceBigDecimals', value: false)
+              property(name: 'useJSR310Types', value: true)
+            }
+
+            javaModelGenerator(targetPackage: '${modelPackage}', targetProject: '${src_main_java}') {
+              property(name: 'enableSubPackages', value: false)
+              property(name: 'trimStrings', value: true)
+            }
+
+            sqlMapGenerator(targetPackage: '${sqlMapperPackage}', targetProject: '${src_main_resources}') {
+              property(name: 'enableSubPackages', value: false)
+            }
+
+            javaClientGenerator(
+              targetPackage: '${mapperPackage}',
+              targetProject: '${src_main_java}',
+              type: 'XMLMAPPER'
+              ) {
+              property(name: 'enableSubPackages', value: false)
+            }
+
+            table(
+              tableName: 'example_table',
+              enableDeleteByPrimaryKey: false,
+              enableDeleteByExample: false
+              ) {
+              generatedKey(column: 'id', sqlStatement: "Mysql", identity: true)
+            }
+          }
+
+        }
+    }
+  }
+}
