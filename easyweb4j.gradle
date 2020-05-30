@@ -1,6 +1,6 @@
-apply from: 'https://raw.githubusercontent.com/easyweb4j/gradle-gallery/master/basic-script.gradle'
-apply from: 'https://raw.githubusercontent.com/easyweb4j/gradle-gallery/master/basic-java.gradle'
-apply from: 'https://raw.githubusercontent.com/easyweb4j/gradle-gallery/master/mybatis-generator.gradle'
+apply from: './gradle/gallery/basic-script.gradle'
+apply from: './gradle/gallery/basic-java.gradle'
+apply from: './gradle/gallery/mybatis-generator.gradle'
 
 apply plugin: 'war'
 apply plugin: 'io.spring.dependency-management'
