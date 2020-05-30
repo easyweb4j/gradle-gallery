@@ -11,27 +11,33 @@ Map<String, String> mysqlConnectionDefProps = [
   'password': '123456',
 ]
 
+setDefault('fileEncoding', 'UTF-8')
+
 setDefault('mybatisGeneratorVersion', '1.3.7')
 setDefault('mysqlConnectorVersion', '8.0.18')
-setDefault('mysqlConnectionProps', mysqlConnectionDefProps)
+setDefault('mybatisVersion', '3.5.3')
+setDefault('hikariCPVersion', '3.4.1')
+
+setDefault('dbConnectionProps', mysqlConnectionDefProps)
 setDefault('basePackage', 'com.example.generated.mybatis')
 setDefault('overwrite', true)
 setDefault('mybatisGenertorConfigFilePath', "${projectDir.path}/src/main/resources/mybatis-generator.xml")
-setDefault('hikariCPVersion', '3.4.1')
-setDefault('fileEncoding', 'UTF-8')
-setDefault('mybatisVersion', '3.5.3')
+setDefault('useDefaultDriver', true)
 
 configurations {
   mybatisGeneratorConfiguration
 }
 
 dependencies {
-  implementation group: 'mysql', name: 'mysql-connector-java', version: mysqlConnectorVersion
   implementation group: 'com.zaxxer', name: 'HikariCP', version: hikariCPVersion
   implementation group: 'org.mybatis', name: 'mybatis', version: mybatisVersion
 
   mybatisGeneratorConfiguration group: 'org.mybatis.generator', name: 'mybatis-generator-core', version: mybatisGeneratorVersion
-  mybatisGeneratorConfiguration group: 'mysql', name: 'mysql-connector-java', version: mysqlConnectorVersion
+
+  if (useDefaultDriver) {
+      implementation group: 'mysql', name: 'mysql-connector-java', version: mysqlConnectorVersion
+      mybatisGeneratorConfiguration group: 'mysql', name: 'mysql-connector-java', version: mysqlConnectorVersion
+  }
 }
 
 task mybatisGenerateSrc {
@@ -45,7 +51,7 @@ task mybatisGenerateSrc {
         ant.properties['mapperPackage'] = basePackage + ".mapper"
         ant.properties['sqlMapperPackage'] = basePackage.replaceAll('\\.', '/') + "/mapper"
 
-        mysqlConnectionProps.each{ k, v -> ant.properties[k] = v }
+        dbConnectionProps.each{ k, v -> ant.properties[k] = v }
 
         ant.taskdef(
                 name: 'mybatisGenerateSrc',
@@ -83,7 +89,7 @@ task generateMybatisConfigFile {
 					' PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"' +
 					' "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">\n'
         xml.generatorConfiguration() {
-          context(id: 'MySQL', targetRuntime: 'MyBatis3', defaultModelType: 'flat') {
+          context(id: 'MySQL', targetRuntime: 'MyBatis3DynamicSql') {
             property(name: 'javaFileEncoding', value: fileEncoding)
             property(name: 'autoDelimitKeywords', value: true)
             property(name: 'beginningDelimiter', value: '`')
