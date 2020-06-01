@@ -1,7 +1,7 @@
 import groovy.xml.*
 
 apply plugin: 'java'
-apply from: './gradle/gallery/basic-script.gradle'
+apply from: "$rootProject.projectDir/gradle/gallery/basic-script.gradle"
 
 Map<String, String> mysqlConnectionDefProps = [
   'driverClass': 'com.mysql.cj.jdbc.Driver',

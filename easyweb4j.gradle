@@ -1,6 +1,6 @@
-apply from: './gradle/gallery/basic-script.gradle'
-apply from: './gradle/gallery/basic-java.gradle'
-apply from: './gradle/gallery/mybatis-generator.gradle'
+apply from: "$rootProject.projectDir/gradle/gallery/basic-script.gradle"
+apply from: "$rootProject.projectDir/gradle/gallery/basic-java.gradle"
+apply from: "$rootProject.projectDir/gradle/gallery/mybatis-generator.gradle"
 
 apply plugin: 'war'
 apply plugin: 'io.spring.dependency-management'

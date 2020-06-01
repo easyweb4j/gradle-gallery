@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'jacoco'
-apply from: './gradle/gallery/basic-script.gradle'
+apply from: "$rootProject.projectDir/gradle/gallery/basic-script.gradle"
 
 def isReportXml = !project.hasProperty('reportType') ? false : "xml".equalsIgnoreCase(reportType)
 
